@@ -1,15 +1,35 @@
-pipeline {
-    agent {
-        docker {
-            image 'maven:3-alpine' 
-            args '-v /root/.m2/.m2:/root/.m2' 
-        }
-    }
-    stages {
-        stage('Build') { 
-            steps{
-                sh 'mvn -B -DskipTests clean package' 
+properties([buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')), pipelineTriggers([pollSCM('H/2 * * * *')])])
+
+
+//Kubernetes podTemplate
+podTemplate( // Open Kubernetes podTemplate parameters
+    name: 'build-slave',
+    label: buildNodeLabel,
+    containers:[
+        /* Inside container templates, we use 'ttyEnabled: true' and
+         * 'command: 'cat'' to prevent the container from exiting early
+         * See https://github.com/jenkinsci/kubernetes-plugin#constraints
+         */
+        containerTemplate(
+            name: 'maven',
+            image: 'maven:3-alpine',
+            workingDir: '/home/jenkins',
+            alwaysPullImage: false,
+            privileged: false,
+            ttyEnabled: true,
+            command: 'cat')
+  ]
+) // Close Kubernetes podTemplate parameters
+{ // Open Kubernetes podTemplate body
+
+    node(buildNodeLabel) {
+
+		stage('build') {
+            timeout(TimeOutMinutes) {
+                container('maven'){
+                     sh 'mvn -B -DskipTests clean package' 
+                }
             }
         }
-    }
+	}
 }
