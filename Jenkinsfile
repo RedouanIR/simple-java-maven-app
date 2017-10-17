@@ -25,6 +25,9 @@ podTemplate( // Open Kubernetes podTemplate parameters
 
     node(buildNodeLabel) {
 		Integer TimeOutMinutes = 10
+
+		checkout scm;
+
 		stage('build') {
             timeout(TimeOutMinutes) {
                 container('maven'){
