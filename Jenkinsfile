@@ -1,5 +1,6 @@
 properties([buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')), pipelineTriggers([pollSCM('H/2 * * * *')])])
 
+def buildNodeLabel = env.BUILD_TAG
 
 //Kubernetes podTemplate
 podTemplate( // Open Kubernetes podTemplate parameters
